@@ -1,0 +1,93 @@
+﻿@using Compiler
+@using Compiler.Syntax
+@inject IJSRuntime JsRuntime
+
+@page "/"
+
+<PageTitle>Compiler</PageTitle>
+
+<div style="display: grid">
+
+    <div class="alert alert-danger d-none" role="alert"></div>
+    <div class="alert alert-success d-none" role="alert"></div>
+
+    <span style="font-size: xx-large;justify-self: center">Compiler</span><br/>
+    <pre>
+        <code>
+            <textarea style="margin-top:20px;font-size: x-large; height: 350px;width:100%" @bind="@CodeString" placeholder="Your code here"> </textarea>
+        </code>
+    </pre>
+    <input type="button" style="font-size: x-large" value="Compiler" class="btn btn-success"
+           @onclick="OnClickBtnMethod"/>
+    <div style="margin-top: 10px">
+        @if (!string.IsNullOrEmpty(ResultValue))
+        {
+            <div class="alert @(Flag ? "alert-danger" : "alert-success")">
+                @(!Flag ?"RESULT:" : "") @ResultValue
+            </div>
+        }
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public bool Success { get; set; }
+
+    [Parameter]
+    public string? CodeString { get; set; }
+    
+    [Parameter]
+    public string? ResultValue { get; set; }
+    [Parameter]
+    public bool Flag { get; set; }
+    
+
+    private readonly Dictionary<VariableSymbol, object> _variables = new Dictionary<VariableSymbol, object>();
+    private SyntaxTree? SyntaxTree { get; set; }
+    private Compilation? Compilation { get; set; }
+
+    [Parameter]
+    public EvaluationResult? Result { get; set; }
+
+    [Parameter]
+    public IEnumerable<Diagnostic>? Diagnostics { get; set; }
+
+    [Parameter]
+    public string? Prefix { get; set; }
+
+    [Parameter]
+    public string? Error { get; set; }
+    
+
+    private async void OnClickBtnMethod()
+    {
+        if (string.IsNullOrEmpty(CodeString)) return;
+        try
+        {
+            SyntaxTree = SyntaxTree.Parse(CodeString!);
+            Compilation = new Compilation(SyntaxTree);
+            Result = Compilation.Evaluate(_variables);
+            Diagnostics = Result.Diagnostics;
+
+
+            foreach (var diagnostic in Diagnostics)
+            {
+                throw new Exception(diagnostic.Message);
+            }
+            Flag = false;
+            ResultValue = Result.Value.ToString();
+        }
+        catch (Exception e)
+        {
+            Flag = true;
+            ResultValue = e.Message;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Success = false;
+    }
+}
