@@ -1,3 +1,5 @@
+using Compiler.Syntax;
+
 namespace Compiler.Binding
 {
     /// <summary>
@@ -8,7 +10,9 @@ namespace Compiler.Binding
         /// <summary>
         /// The _variables field represents the variables declared in the scope.
         /// </summary>
-        private Dictionary<string,VariableSymbol> _variables = new Dictionary<string, VariableSymbol>();
+        public Dictionary<string,VariableSymbol> _variables = new Dictionary<string, VariableSymbol>();
+        public Dictionary<string,BoundStatement> _functions = new Dictionary<string,BoundStatement>();
+        public List<string> _variableFunction = new List<string>();
 
         public BoundScope(BoundScope parent)
         {
@@ -27,6 +31,14 @@ namespace Compiler.Binding
             if(_variables.ContainsKey(variable.Name))
                 return false;
             _variables.Add(variable.Name, variable);
+            return true;
+        }
+        public bool TryDeclareFunction(List<string> variables, string name, BoundStatement expressionSyntax)
+        {
+            if (_functions.ContainsKey(name))
+                return false;
+            _functions.Add(name, expressionSyntax);
+            _variableFunction = variables;
             return true;
         }
         /// <summary>

@@ -132,8 +132,6 @@ namespace Compiler.Binding
         {
             switch (syntax.Kind)
             {
-                case SyntaxKind.MethodSyntaxExpression:
-                    return BindMethodSyntaxExpression((MethodSyntaxExpression)syntax);
                 case SyntaxKind.StringExpression:
                     return BindStringExpression((StringExpressionSyntax) syntax);
                 case SyntaxKind.LiteralExpression:
@@ -148,15 +146,47 @@ namespace Compiler.Binding
                     return BindNameExpression((NameExpressionSyntax)syntax);
                 case SyntaxKind.AssignmentExpression:
                     return BindAssignmentExpression((AssignmentExpression)syntax);
+                case SyntaxKind.PrintExpression:
+                    return BindPrintExpression((PrintExpression)syntax);
+                case SyntaxKind.FunctionExpression:
+                    return BindFunctionExpression((FunctionExpression)syntax);
+                case SyntaxKind.DevelopFunctionExpression:
+                    return BindDevelopFunctionExpression((DevelopFunctionExpression)syntax);
+                case SyntaxKind.ReturnExpression:
+                    return BindReturnExpression((ReturnExpression)syntax);
                 default:
                     throw new Exception($"Unexpected syntax {syntax.Kind}");
             }
         }
 
-        private BoundExpression BindMethodSyntaxExpression(MethodSyntaxExpression syntax)
+        private BoundExpression BindReturnExpression(ReturnExpression syntax)
         {
-            var aux = BindExpression(syntax.CantToken);
-            return new BoundMethodExpression(syntax.IdentifierToken,aux,syntax.Variable);
+            return new BoundLiteralExpression(syntax.ReturnKeyword);
+        }
+
+        private BoundExpression BindDevelopFunctionExpression(DevelopFunctionExpression syntax)
+        {
+            var name = syntax.IdentifierToken.Text;
+            if (!_scope._functions.ContainsKey(name))
+                _diagnostics.ReportUndefinedFunction(syntax.IdentifierToken.Span,name);
+            return new BoundDevelopFunction(_scope._functions[name],_scope._variables[_scope._variableFunction[0]],BindExpression(syntax.Variable));
+        }
+
+        private BoundExpression BindFunctionExpression(FunctionExpression syntax)
+        {
+            var nameFunction = syntax.IdentifierToken.Text;
+            var aux = new List<string>() { };
+            aux.Add(syntax.Variable.Text);
+            _scope.TryDeclare(new VariableSymbol(syntax.Variable.Text,typeof(int)));
+            if(!_scope.TryDeclareFunction(aux,nameFunction,BindBlockStatement(syntax.Body)))
+                _diagnostics.ReportRepeatedFunction(syntax.IdentifierToken.Span,nameFunction);
+            return new BoundFunctionExpression(syntax.Body,syntax.Variable.Text);
+        }
+
+        private BoundExpression BindPrintExpression(PrintExpression syntax)
+        {
+            var aux = BindExpression(syntax.Expression);
+            return new BoundPrintExpression(aux);
         }
 
         ///<summary>
@@ -237,7 +267,7 @@ namespace Compiler.Binding
         {
             var boundLeft = BindExpression(syntax.Left);
             var boundRight = BindExpression(syntax.Right);
-            var boundOperator = BoundBinaryOperator.Bind(syntax.OperatorToken.Kind, boundLeft.Type,boundRight.Type);
+            var boundOperator = BoundBinaryOperator.BindFunction(syntax.OperatorToken.Kind);
             if(boundOperator == null)
             {
                 _diagnostics.ReportUndefinedBinaryOperator(syntax.OperatorToken.Span,syntax.OperatorToken.Text,boundLeft.Type,boundRight.Type);

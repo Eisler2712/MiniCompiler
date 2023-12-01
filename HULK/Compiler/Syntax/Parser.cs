@@ -120,7 +120,7 @@ namespace Compiler.Syntax
         /// <summary>
         /// ParseBlockStatements parses a block statement.
         /// </summary>
-        private StatementSyntax ParseBlockStatements()
+        private BlockStatementSyntax ParseBlockStatements()
         {
             var openBraceToken = Match(SyntaxKind.OpenBraceToken);
             var statements = new List<StatementSyntax>();
@@ -203,17 +203,6 @@ namespace Compiler.Syntax
                         var commaToken = Match(SyntaxKind.CommaToken);
                         return new LiteralExpression(commaToken);
                     }
-                case SyntaxKind.MethodKeyword:
-                    {
-                        var keyword = Match(SyntaxKind.MethodKeyword);
-                        var openParenthesis = Match(SyntaxKind.OpenParenthesisToken);
-                        var cantidad = ParseExpression();
-                        var commaToken = Match(SyntaxKind.CommaToken);
-                        var variable = Match(SyntaxKind.IndentifierToken);
-                        var closeParenthesis = Match(SyntaxKind.CloseParenthesisToken);
-
-                        return new MethodSyntaxExpression(keyword,openParenthesis,cantidad,commaToken,variable,closeParenthesis);
-                    }
                 case SyntaxKind.QuotesToken:
                     {
                         var left = NextToken();
@@ -240,8 +229,29 @@ namespace Compiler.Syntax
                     }
                 case SyntaxKind.IndentifierToken:
                     {
-                        var identifierToken = NextToken();
-                        return new NameExpressionSyntax(identifierToken);
+                        var aux = Peek(1);
+                        if (aux.Kind == SyntaxKind.OpenParenthesisToken)
+                        {
+                            var identifierToken = NextToken();
+                            return DevelopFunctionExpressionSyntax(identifierToken);
+                        }
+                        else
+                        {
+                            var identifierToken = NextToken();
+                            return new NameExpressionSyntax(identifierToken);
+                        }
+                    }
+                case SyntaxKind.PrintKeyword:
+                    {
+                        return PrintExpressionSyntax();
+                    }
+                case SyntaxKind.FunctionKeyword:
+                    {
+                        return FunctionExpressionSyntax();
+                    }
+                case SyntaxKind.ReturnKeyword:
+                    {
+                        return ReturnExpressionSyntax();
                     }
                 default:
                     {
@@ -249,6 +259,49 @@ namespace Compiler.Syntax
                         return new LiteralExpression(numberToken);
                     }
             }
+        }
+
+        private ExpressionSyntax ReturnExpressionSyntax()
+        {
+            var keyword = Match(SyntaxKind.ReturnKeyword);
+            var expression = ParseExpression();
+            var semicolonToken = Match(SyntaxKind.SemicolonToken);
+
+            return new ReturnExpression(keyword, expression,semicolonToken);
+        }
+
+        private ExpressionSyntax DevelopFunctionExpressionSyntax(SyntaxToken identifierToken)
+        {
+            var openBraceToken = Match(SyntaxKind.OpenParenthesisToken);
+            var expression = ParseExpression();
+            var closeBraceToken = Match(SyntaxKind.CloseParenthesisToken);
+
+            return new DevelopFunctionExpression(identifierToken, openBraceToken, expression, closeBraceToken);
+        }
+
+        private ExpressionSyntax PrintExpressionSyntax()
+        {
+            var keyword = Match(SyntaxKind.PrintKeyword);
+            var openParenthesis = Match(SyntaxKind.OpenParenthesisToken);
+            var expression = ParseExpression();
+            var closeParenthesis = Match(SyntaxKind.CloseParenthesisToken);
+
+            return new PrintExpression(keyword, openParenthesis, expression, closeParenthesis);
+        }
+
+        private ExpressionSyntax FunctionExpressionSyntax()
+        {
+            var keyword = Match(SyntaxKind.FunctionKeyword);
+            var identifier = Match(SyntaxKind.IndentifierToken);
+            var openParenthesis = Match(SyntaxKind.OpenParenthesisToken);
+            var variable = Match(SyntaxKind.IndentifierToken);
+            var closeParenthesis = Match(SyntaxKind.CloseParenthesisToken);
+            var arrowToken = Match(SyntaxKind.ArrowToken);
+            var body = ParseBlockStatements();
+            var semicolonToken = Match(SyntaxKind.SemicolonToken);
+            
+
+            return new FunctionExpression(keyword, identifier,openParenthesis, variable, closeParenthesis,arrowToken,body,semicolonToken);
         }
         /// <summary>
         /// Match checks if the current token is of the expected kind.

@@ -64,18 +64,16 @@ namespace Compiler
 
         private object EvaluateExpression(BoundExpression node)
         {
-            if (node.Kind == BoundNodeKind.MethodExpression)
+            if (node is BoundDevelopFunction l)
             {
-                var m = (BoundMethodExpression)node;
-                var cant = EvaluateExpression(m.CantToken);
-                if (!(cant.GetType() == typeof(int)))
-                    throw new Exception("The type should be int");
-                var name = m.Variable.Text;
-                var identifier = m.IdentifierToken.Text;
-                
-                return "Compilation Correct";
+                _variables[l.Name] = EvaluateExpression(l.Value);
+                EvaluateStatement(l.Expression);
+                return _lastValue.ToString();
             }
-
+            if (node is BoundFunctionExpression k)
+            {
+                return k.Name;
+            }
             if (node is BoundLiteralExpression n)
                 return n.Value;
             if (node is BoundVariableExpression v)
@@ -85,6 +83,11 @@ namespace Compiler
             {
                 var value = EvaluateExpression(a.Expression);
                 _variables[a.Variable] = value;
+                return value;
+            }
+            if(node is BoundPrintExpression p)
+            {
+                var value = EvaluateExpression(p.Expression);
                 return value;
             }
 

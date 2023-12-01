@@ -138,6 +138,11 @@ namespace Compiler.Syntax
                     }
                     else
                     {
+                        if(LoookaHead == '>')
+                        {
+                            _position += 2;
+                            return new SyntaxToken(SyntaxKind.ArrowToken, start, "=>", null!);
+                        }
                         _position++;
                         return new SyntaxToken(SyntaxKind.EqualsToken, start, "=", null!);
                     } 

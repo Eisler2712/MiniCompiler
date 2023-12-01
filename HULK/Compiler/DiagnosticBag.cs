@@ -64,5 +64,17 @@ namespace Compiler
         {
             Report(new TextSpan(0,0),v);
         }
+
+        public void ReportUndefinedFunction(TextSpan identifierTokenSpan, string identifierTokenText)
+        {
+            var message = $"Function {identifierTokenText} does not exist.";
+            Report(identifierTokenSpan,message);
+        }
+
+        public void ReportRepeatedFunction(TextSpan identifierTokenSpan, string nameFunction)
+        {
+            var message = $"The Function {nameFunction} is already defined.";
+            Report(identifierTokenSpan,message);
+        }
     }
 }

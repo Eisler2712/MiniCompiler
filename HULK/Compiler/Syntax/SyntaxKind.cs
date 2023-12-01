@@ -13,7 +13,10 @@ namespace Compiler.Syntax
         UnaryExpression,
         NameExpression,
         AssignmentExpression,
-        MethodSyntaxExpression,
+        PrintExpression,
+        FunctionExpression,
+        DevelopFunctionExpression,
+        ReturnExpression,
 
         //Statement
         ExpressionStatement,
@@ -43,7 +46,9 @@ namespace Compiler.Syntax
         TrueKeyword,
         IfKeyword,
         ElseKeyword,
-        MethodKeyword,
+        PrintKeyword,
+        FunctionKeyword,
+        ReturnKeyword,
 
         //OtherToken
         IndentifierToken,
@@ -63,5 +68,7 @@ namespace Compiler.Syntax
         QuestionToken,
         CommaToken,
         SemicolonToken,
+        ArrowToken,
+        
     }
 }

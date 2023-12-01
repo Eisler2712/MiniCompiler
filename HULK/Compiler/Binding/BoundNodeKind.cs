@@ -10,12 +10,16 @@ namespace Compiler.Binding
         LiteralExpression,
         VariableExpression,
         AssignmentExpression,
+        PrintExpression,
+        MethodExpression,
+        FunctionExpression,
+        DevelopFunctionExpression,
       
       
         // Statements
         BlockStatement,
         ExpressionStatement,
         IfStatement,
-        MethodExpression
+
     }
 }

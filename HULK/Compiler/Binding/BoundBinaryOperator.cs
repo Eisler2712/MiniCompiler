@@ -72,5 +72,15 @@ namespace Compiler.Binding
             }
             return null;
         }
+        public static BoundBinaryOperator BindFunction(SyntaxKind syntaxKind)
+        {
+            foreach (var op in _operators)
+            {
+                if (op.SyntaxKind == syntaxKind)
+                    return op;
+            }
+
+            return null;
+        }
     }
 }
